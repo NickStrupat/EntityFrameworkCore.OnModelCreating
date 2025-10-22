@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -9,33 +11,39 @@ public static class ModelCreatingExtensions
 {
 	public static void OnModelCreatingEntities(this ModelBuilder modelBuilder)
 	{
+		Object?[] parameters = [modelBuilder];
 		foreach (var type in modelBuilder.Model.GetEntityTypes())
-			MethodInfo
-				.MakeGenericMethod(GetEntityType(type))
-				.Invoke(null, [modelBuilder]);
+		{
+			if (GetEntityType(type) is {} entityType)
+				MethodInfo.MakeGenericMethod(entityType).Invoke(null, parameters);
+		}
 
-		static Type GetEntityType(IMutableEntityType type)
+		static Type? GetEntityType(IMutableEntityType type)
 		{
 			Type? entityType = null;
+			List<Type>? invalidModelCreatingInterfaces = null;
 			foreach (var @interface in type.ClrType.GetInterfaces())
 			{
-				if (!@interface.TryGetSingleGenericArgument(typeof(IModelCreating<>), out var genericArgument))
+				if (!@interface.IsGenericType || @interface.GetGenericTypeDefinition() != typeof(IModelCreating<>))
 					continue;
+				var genericArgument = @interface.GenericTypeArguments.Single();
 				if (genericArgument != type.ClrType)
-					throw new EntityImplementsInvalidModelCreatingException(type.ClrType, @interface);
+					(invalidModelCreatingInterfaces ??= new(1)).Add(@interface);
 				entityType = type.ClrType;
 			}
-
-			return entityType ?? throw new EntityTypeDoesNotImplementModelCreatingException(type.ClrType);
+			if (invalidModelCreatingInterfaces is not null)
+				throw new EntityImplementsInvalidModelCreatingException(type.ClrType, invalidModelCreatingInterfaces);
+			return entityType;
 		}
 	}
 
-	private sealed class EntityImplementsInvalidModelCreatingException(Type entityClrType, Type @interface) : Exception(
-		$"Entity type `{entityClrType}` implements {@interface} but should only implement {nameof(IModelCreating<>)}`1[{entityClrType}]");
+	private sealed class EntityImplementsInvalidModelCreatingException(Type entityClrType, List<Type> @interface)
+		: Exception($"Entity type {entityClrType} must only implement {nameof(IModelCreating<>)}`1[{entityClrType}].")
+	{
+		public Type EntityClrType => entityClrType;
+		public IReadOnlyList<Type> InvalidInterfaces => @interface;
+	}
 	
-	private sealed class EntityTypeDoesNotImplementModelCreatingException(Type entityClrType) : Exception(
-		$"Entity type `{entityClrType}` does not implement {nameof(IModelCreating<>)}`1[{entityClrType}]");
-
 	private static readonly MethodInfo MethodInfo = typeof(ModelCreatingExtensions)
 		.GetMethod(nameof(InvokeOnModelCreating), BindingFlags.NonPublic | BindingFlags.Static)!
 		.GetGenericMethodDefinition();
