@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <WarningsAsErrors>nullable</WarningsAsErrors>
+        <RootNamespace>NickStrupat.EntityFrameworkCore.OnModelCreating</RootNamespace>
+        <LangVersion>preview</LangVersion>
+
+        <WeaverConfiguration>
+            <Weavers>
+                <RuntimeNullables CheckNonPublic="true" CheckOutputs="true"/>
+            </Weavers>
+        </WeaverConfiguration>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="UnitTests"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10"/>
+        <PackageReference Include="RuntimeNullables.Fody" Version="2.0.0" PrivateAssets="all"/>
+    </ItemGroup>
+
+</Project>
