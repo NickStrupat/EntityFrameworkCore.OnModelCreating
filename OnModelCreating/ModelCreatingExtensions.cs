@@ -9,6 +9,10 @@ namespace NickStrupat.EntityFrameworkCore.OnModelCreating;
 
 public static class ModelCreatingExtensions
 {
+	/// Invokes the static <c>OnModelCreating</c> method on all entity types that implement <see cref="IModelCreating{T}"/>.
+	/// <param name="modelBuilder">The <see cref="ModelBuilder"/>.</param>
+	/// <exception cref="EntityImplementsInvalidModelCreatingException">Thrown when an entity type implements
+	/// <see cref="IModelCreating{T}"/> with a generic argument that does not match the entity type itself.</exception>
 	public static void OnModelCreatingEntities(this ModelBuilder modelBuilder)
 	{
 		Object?[] parameters = [modelBuilder];
@@ -37,17 +41,17 @@ public static class ModelCreatingExtensions
 		}
 	}
 
-	private sealed class EntityImplementsInvalidModelCreatingException(Type entityClrType, List<Type> @interface)
-		: Exception($"Entity type {entityClrType} must only implement {nameof(IModelCreating<>)}`1[{entityClrType}].")
-	{
-		public Type EntityClrType => entityClrType;
-		public IReadOnlyList<Type> InvalidInterfaces => @interface;
-	}
-	
 	private static readonly MethodInfo MethodInfo = typeof(ModelCreatingExtensions)
 		.GetMethod(nameof(InvokeOnModelCreating), BindingFlags.NonPublic | BindingFlags.Static)!
 		.GetGenericMethodDefinition();
 	
 	private static void InvokeOnModelCreating<T>(ModelBuilder mb) where T : class, IModelCreating<T> =>
 		T.OnModelCreating(mb.Entity<T>());
+}
+
+public sealed class EntityImplementsInvalidModelCreatingException(Type entityClrType, List<Type> @interface)
+	: Exception($"Entity type {entityClrType} must only implement {nameof(IModelCreating<>)}`1[{entityClrType}].")
+{
+	public Type EntityClrType => entityClrType;
+	public IReadOnlyList<Type> InvalidInterfaces => @interface;
 }
