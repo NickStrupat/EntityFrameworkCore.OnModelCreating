@@ -12,10 +12,23 @@
                 <RuntimeNullables CheckNonPublic="true" CheckOutputs="true"/>
             </Weavers>
         </WeaverConfiguration>
+        
+        <GeneratePackageOnBuild Condition="'$(Configuration)'=='Release'">true</GeneratePackageOnBuild>
+        <PackageId>NickStrupat.EntityFrameworkCore.OnModelCreating</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>Nick Strupat</Authors>
+        <Company>Nick Strupat</Company>
+        <Product>NickStrupat.EntityFrameworkCore.OnModelCreating</Product>
+        <Description>Extension methods to configure Entity Framework Core models in a more convenient way.</Description>
+        <PackageProjectUrl>https://github.com/NickStrupat/EntityFrameworkCore.OnModelCreating</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/NickStrupat/EntityFrameworkCore.OnModelCreating</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
-
+    
     <ItemGroup>
-        <InternalsVisibleTo Include="UnitTests"/>
+        <None Include="../README.md" Pack="true" PackagePath=""/>
     </ItemGroup>
 
     <ItemGroup>
