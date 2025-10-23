@@ -17,7 +17,7 @@ This library allows you to define Entity Framework Core model configuration dire
 ## Installation
 
 ```bash
-dotnet add package EntityFrameworkCore.OnModelCreating
+dotnet add package NickStrupat.EntityFrameworkCore.OnModelCreating
 ```
 
 ## Usage
